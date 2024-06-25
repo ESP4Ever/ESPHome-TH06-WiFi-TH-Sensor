@@ -3,7 +3,6 @@ substitutions:
   friendly_name: "TH06 LCD Sensor (US01)"
   project_name: "noname.th06-lcd-us-sensor"
   project_version: "1.0"
-  switch_restore_mode: RESTORE_DEFAULT_OFF
 
 esphome:
   name: "${device_name}"
