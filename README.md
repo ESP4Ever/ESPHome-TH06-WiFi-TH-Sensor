@@ -1,4 +1,5 @@
-![](/pictures/Tuya Wi-Fi TH06 Sensor.png)
+![](/pictures/Tuya_Wi-Fi_TH06_Sensor.png)
+
 # Tuya to ESPHome conversion of the TH06 WiFi Temperature & Humidity Sensor with LCD display
 This sensor is built on WB3S Tuya chip which shall be replaced to a ESP8266-based module.
 For such mods I'm using ESP07S because it has all pull-up/down resistors inside so no external components required, besides that it has 4MB flash - a lot of space for your code and OTA image. The only disadvantage of this module is an external antenna which require a "Tetris-playing", fitting it into small devices.
