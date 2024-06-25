@@ -1,0 +1,225 @@
+substitutions:
+  device_name: "esphome-th06-lcd-sensor-us-01"
+  friendly_name: "TH06 LCD Sensor (US01)"
+  project_name: "noname.th06-lcd-us-sensor"
+  project_version: "1.0"
+  switch_restore_mode: RESTORE_DEFAULT_OFF
+
+esphome:
+  name: "${device_name}"
+  friendly_name: ${friendly_name}
+  #name_add_mac_suffix: true
+  project:
+    name: "${project_name}"
+    version: "${project_version}"
+
+  on_boot:
+    priority: -100
+    then:
+      - lambda: |-
+          auto temp = ESP.getResetReason();
+          id( reset_reason).publish_state( temp.c_str());
+
+esp8266:
+  board: esp07s
+  restore_from_flash: true
+
+# Enable logging
+# Levels:
+#   - ERROR: ESP_LOGE
+#   - WARNING: ESP_LOGW
+#   - INFO: ESP_LOGI
+#   - DEBUG: ESP_LOGD
+#   - VERBOSE: ESP_LOGV
+#   - VERY_VERBOSE: ESP_LOGVV
+logger:
+  level: NONE
+  #esp8266_store_log_strings_in_flash: false
+  baud_rate: 0
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret api_key
+
+ota:
+  platform: esphome
+  password: !secret ota_password
+
+safe_mode:
+  disabled: false
+  reboot_timeout: 10min
+  num_attempts: 5
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  output_power: 18
+  #use_address: 192.168.2.7
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: ${device_name}
+    password: !secret wifi_ap_password
+
+captive_portal:
+
+# Time Source
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+  # - platform: sntp
+  #   id: sntp_time
+
+# Status LED
+light:
+  - platform: status_led
+    id: led1
+    pin:
+      number: GPIO04
+      inverted: false
+
+uart:
+  rx_pin: GPIO3
+  tx_pin: GPIO1
+  baud_rate: 9600
+
+tuya:
+  time_id: homeassistant_time
+
+####################
+#   SOFT BUTTONS   #
+####################
+button:
+  - platform: factory_reset
+    id: reset_btn
+    name: "Reset to Factory Defaults"
+    entity_category: "diagnostic"
+    disabled_by_default: true
+
+  - platform: restart
+    id: restart_btn
+    name: "Restart"
+    entity_category: "diagnostic"
+    disabled_by_default: true
+
+  - platform: safe_mode
+    id: safemode_btn
+    name: "Safe Mode"
+    entity_category: "diagnostic"
+    disabled_by_default: true
+
+
+####################
+#      SENSORS     #
+####################
+sensor:
+# Diagnostic Sensors
+  # System
+  - platform: uptime
+    name: "Uptime"
+    icon: mdi:timer-play-outline
+    entity_category: "diagnostic"
+    disabled_by_default: true
+
+  - platform: wifi_signal # Reports the WiFi signal strength/RSSI in dB
+    name: "WiFi Signal (dB)"
+    icon: mdi:signal
+    id: wifi_signal_db
+    update_interval: 60s
+    entity_category: "diagnostic"
+    disabled_by_default: true
+  
+  - platform: copy # Reports the WiFi signal strength in %
+    source_id: wifi_signal_db
+    name: "WiFi Signal (%)"
+    icon: mdi:signal
+    filters:
+    - lambda: return min( max( 2 * (x + 100.0), 0.0), 100.0);
+    unit_of_measurement: "%"
+    entity_category: "diagnostic"
+    disabled_by_default: true
+  
+  # Tuya Sensors
+  - platform: "tuya"
+    sensor_datapoint: 1
+    id: temperature_sensor
+    name: "Temperature"
+    icon: "mdi:thermometer"
+    unit_of_measurement: "°C"
+    device_class: "temperature"
+    state_class: "measurement"
+    accuracy_decimals: 1
+    filters:
+      - multiply: 0.1
+
+  - platform: "tuya"
+    sensor_datapoint: 2
+    id: humidity_sensor
+    name: "Relative Humidity"
+    icon: "mdi:water-percent"
+    unit_of_measurement: "%"
+    device_class: "humidity"
+    state_class: "measurement"
+
+  # Absolute Humidity Sensor
+  - platform: absolute_humidity
+    name: "Absolute Humidity"
+    temperature: temperature_sensor
+    humidity: humidity_sensor
+    icon: "mdi:water-opacity"
+    unit_of_measurement: "g/m3"
+    device_class: "humidity"
+    state_class: "measurement"
+    accuracy_decimals: 1
+
+
+####################
+#  BINARY SENSORS  #
+####################
+binary_sensor:
+# Diagnostic Sensor
+  - platform: status
+    name: "Status"
+    id: connection_status
+    entity_category: "diagnostic"
+    disabled_by_default: true
+
+# Init Button
+  - platform: gpio
+    id: control_btn
+    pin:
+      number: GPIO13
+      inverted: true
+      mode:
+        input: true
+    on_multi_click:
+    # - timing:
+    #     - ON for 2s to 6.9s
+    #   then:
+    #     - button.press: restart_btn
+    - timing:
+        - ON for at least 10s
+      then:
+        - button.press: reset_btn
+
+
+####################
+#   TEXT SENSORS   #
+####################
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: IP Address
+      icon: mdi:ip-network-outline
+      entity_category: "diagnostic"
+
+    mac_address:
+      name: MAC Address
+      entity_category: "diagnostic"
+
+  - platform: template
+    id: reset_reason
+    name: Reset Reason
+    icon: mdi:progress-question
+    entity_category: "diagnostic"
+    disabled_by_default: true

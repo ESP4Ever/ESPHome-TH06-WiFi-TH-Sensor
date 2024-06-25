@@ -1,0 +1,13 @@
+GPIO01 (TXD0) - MCU_RX (7)
+GPIO03 (RXD0) - MCU_TX (6)
+GPIO05 - R1 (NOT INSTALLED)
+GPIO04 - D1 LED (1 = active)
+GPIO13 - to MCU (15), Button (0 = active)
+GPIO14 - to R13, R10 (NOT INSTALLED)
+
+
+[18:01:16][C][tuya:041]: Tuya:
+[18:01:16][C][tuya:058]:   Datapoint 1: int value (value: 277)
+[18:01:16][C][tuya:058]:   Datapoint 2: int value (value: 50)
+[18:01:16][C][tuya:070]:   GPIO Configuration: status: pin 9, reset: pin 6
+[18:01:16][C][tuya:074]:   Product: '{"p":"7akwzwfwhukkdsib","v":"1.0.0","m":0}'
