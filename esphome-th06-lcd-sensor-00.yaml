@@ -1,7 +1,7 @@
 substitutions:
   device_name: "esphome-th06-lcd-sensor-00"
   friendly_name: "TH06 LCD Sensor (00)"
-  project_name: "noname.th06-lcd-sensor"
+  project_name: "tuya.th06-lcd-sensor"
   project_version: "1.0"
 
 esphome:
